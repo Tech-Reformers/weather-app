@@ -48,6 +48,21 @@
       background-color: #1d4ed8;
     }
 
+    #unit-toggle {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background-color: #e2e8f0;
+      color: #222;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+      cursor: pointer;
+      display: none;
+    }
+
+    #unit-toggle:hover {
+      background-color: #cbd5e1;
+    }
+
     #error-display {
       color: #b91c1c;
       font-weight: bold;
@@ -83,6 +98,7 @@
   <div class="input-row">
     <input type="text" id="city-input" placeholder="Enter a U.S. city name">
     <button id="submit-btn">Get Weather</button>
+    <button id="unit-toggle">Switch to °C</button>
   </div>
 
   <div id="error-display"></div>

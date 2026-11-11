@@ -1,3 +1,16 @@
+// Unit toggle state
+let useCelsius = false;
+let lastCity = '';
+let lastPeriods = null;
+
+function toC(f) {
+  return Math.round((f - 32) * 5 / 9);
+}
+
+function formatTemp(f) {
+  return useCelsius ? `${toC(f)}°C` : `${f}°F`;
+}
+
 function getIcon(shortForecast) {
   const s = shortForecast.toLowerCase();
   if (s.includes('thunder'))                       return '⛈️';
@@ -89,28 +102,32 @@ async function getForecast(forecastUrl) {
 }
 
 function renderWeather(city, periods) {
+  lastCity = city;
+  lastPeriods = periods;
+
   const display = document.getElementById('weather-display');
   const current = periods[0];
   const icon = getIcon(current.shortForecast);
+  const unit = useCelsius ? '°C' : '°F';
 
-  // Current conditions block (Task 4.1)
+  // Current conditions block
   let html = `
     <div class="current-conditions">
       <h2>${icon} ${city}</h2>
-      <p><strong>Temperature:</strong> ${current.temperature}°F</p>
+      <p><strong>Temperature:</strong> ${formatTemp(current.temperature)}</p>
       <p><strong>Conditions:</strong> ${current.shortForecast}</p>
       <p><strong>Wind:</strong> ${current.windSpeed} ${current.windDirection}</p>
     </div>
   `;
 
-  // Forecast table (Task 4.2)
+  // Forecast table
   html += `
     <table>
       <thead>
         <tr>
           <th>Day</th>
           <th>Icon</th>
-          <th>High °F</th>
+          <th>High ${unit}</th>
           <th>Forecast</th>
         </tr>
       </thead>
@@ -122,7 +139,7 @@ function renderWeather(city, periods) {
         <tr>
           <td>${period.name}</td>
           <td>${getIcon(period.shortForecast)}</td>
-          <td>${period.temperature}</td>
+          <td>${formatTemp(period.temperature)}</td>
           <td>${period.shortForecast}</td>
         </tr>
     `;
@@ -134,6 +151,9 @@ function renderWeather(city, periods) {
   `;
 
   display.innerHTML = html;
+
+  // Show the toggle button now that we have results
+  document.getElementById('unit-toggle').style.display = 'inline-block';
 }
 
 async function getWeather() {
@@ -157,3 +177,8 @@ async function getWeather() {
 
 document.getElementById('submit-btn').addEventListener('click', getWeather);
 document.getElementById('city-input').addEventListener('keydown', e => { if (e.key === 'Enter') getWeather(); });
+document.getElementById('unit-toggle').addEventListener('click', () => {
+  useCelsius = !useCelsius;
+  document.getElementById('unit-toggle').textContent = useCelsius ? 'Switch to °F' : 'Switch to °C';
+  if (lastPeriods) renderWeather(lastCity, lastPeriods);
+});
