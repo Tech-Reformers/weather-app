@@ -41,7 +41,7 @@ function timeout(ms) {
 async function geocode(city) {
   try {
     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&countrycodes=us&format=json`;
-    const response = await Promise.race([fetch(url), timeout(10000)]);
+    const response = await Promise.race([fetch(url, { headers: { 'User-Agent': 'WeatherApp/1.0' } }), timeout(10000)]);
     const result = await response.json();
     if (!result || result.length === 0) {
       throw new Error('City not found. Please try a different city name.');
