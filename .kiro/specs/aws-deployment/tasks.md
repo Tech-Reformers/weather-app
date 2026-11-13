@@ -1,0 +1,79 @@
+# Implementation Plan
+
+Prerequisite (outside this spec): `styles.css` exists and `index.html` has no `<style>` block or inline `style` attributes.
+
+- [ ] 1. Create the CloudFormation template
+  - [ ] 1.1 Create `infra/weather-app.yaml` with `SiteBucket`
+    - No `BucketName`; all four `PublicAccessBlockConfiguration` settings `true`
+    - `BucketEncryption` with `SSEAlgorithm: AES256`; `VersioningConfiguration: Enabled`
+    - `OwnershipControls` with `BucketOwnerEnforced`; no `WebsiteConfiguration`
+    - Tag `Project=weather-app`
+    - _Requirements: 1.1, 1.2, 1.4, 2.1, 2.2, 2.4, 2.5_
+  - [ ] 1.2 Add `SiteOAC` and `SecurityHeadersPolicy`
+    - OAC: `Name: !Sub ${AWS::StackName}-oac`, origin type `s3`, `SigningBehavior: always`, `SigningProtocol: sigv4`
+    - Headers policy: `Name: !Sub ${AWS::StackName}-security-headers`, with CSP, HSTS (`max-age=31536000`), `nosniff`, `X-Frame-Options: DENY`, and `Referrer-Policy: strict-origin-when-cross-origin`, each with `Override: true`
+    - CSP value exactly as in the design's Security headers table, with no `'unsafe-inline'`
+    - _Requirements: 3.1, 4.1, 4.2_
+  - [ ] 1.3 Add `Distribution`
+    - Origin `!GetAtt SiteBucket.RegionalDomainName` with `S3OriginConfig.OriginAccessIdentity: ""` and `OriginAccessControlId: !GetAtt SiteOAC.Id`
+    - `DefaultRootObject: index.html`; `redirect-to-https`; `GET`/`HEAD` only; `Compress: true`
+    - Managed `CachingOptimized` cache policy `658327ea-f89d-4fab-a63d-7e88639e58f6`; `ResponseHeadersPolicyId: !Ref SecurityHeadersPolicy`
+    - `HttpVersion: http2and3`; `PriceClass: PriceClass_100`; `CloudFrontDefaultCertificate: true`
+    - Tag `Project=weather-app`
+    - _Requirements: 1.4, 3.1, 3.2, 3.3, 3.4_
+  - [ ] 1.4 Add `SiteBucketPolicy` and the outputs
+    - Allow `s3:GetObject` on `${SiteBucket.Arn}/*` to `cloudfront.amazonaws.com`, conditioned on `AWS:SourceArn` built from `${AWS::Partition}`, `${AWS::AccountId}`, and `${Distribution}`
+    - Deny `s3:*` when `aws:SecureTransport` is `false`
+    - Outputs: `BucketName`, `BucketRegionalDomainName`, `DistributionId`, `DistributionDomainName`, `SiteURL`
+    - _Requirements: 1.2, 1.3, 2.3, 2.6_
+  - [ ] 1.5 Check the template
+    - Search the template for 12-digit numbers, region names, and profile names; none may appear
+    - Run `aws cloudformation validate-template --template-body file://infra/weather-app.yaml` only if the user has an active AWS session and agrees; otherwise leave this to the notebook
+    - _Requirements: 1.2, 1.5_
+
+- [ ] 2. Create the deployment notebook `deploy-aws.ipynb`
+  - [ ] 2.1 Add the intro, sign-in, and settings parts (cells 0–2)
+    - Python 3 kernel metadata matching `container-demo/2048-demo.ipynb`
+    - Intro markdown with the architecture diagram, the resource list, and "start Jupyter from the repo folder in the terminal where you ran `aws sso login` and set `AWS_PROFILE`"
+    - `!aws sts get-caller-identity`, with markdown explaining the account, role ARN, and that the profile sets the region
+    - `STACK` and `TEMPLATE` variables; prerequisite check that `styles.css` exists and `index.html` contains no `<style`, printing a clear message if either fails
+    - _Requirements: 5.1, 5.2_
+  - [ ] 2.2 Add the template walkthrough, validate, and deploy parts (cells 3–5)
+    - `!type infra\weather-app.yaml` with markdown explaining each resource and new terms (OAC, response headers policy, CSP, HSTS)
+    - `validate-template ... --query Description --output text`
+    - Warning markdown that the first deploy takes about 5 minutes and is mostly silent, plus the `ROLLBACK_COMPLETE` recovery note
+    - `!aws cloudformation deploy --stack-name {STACK} --template-file {TEMPLATE} --tags Project=weather-app --no-fail-on-empty-changeset`
+    - _Requirements: 1.5, 5.1, 5.4, 5.9, 5.10_
+  - [ ] 2.3 Add the outputs, upload, and invalidate parts (cells 6–8)
+    - Read `BUCKET`, `DIST_ID`, `DIST_DOMAIN`, and `BUCKET_DOMAIN` with `describe-stacks --query "Stacks[0].Outputs[?OutputKey=='...'].OutputValue" --output text` and `out.s.strip()`; build `SITE_URL`
+    - Three `!aws s3 cp` lines with `--content-type` (`text/html; charset=utf-8`, `text/css; charset=utf-8`, `application/javascript; charset=utf-8`) and `--cache-control "max-age=0, s-maxage=86400"`
+    - Markdown explaining browser versus edge caching and why an invalidation is needed
+    - `create-invalidation --paths "/*" --query Invalidation.Id --output text`, then `wait invalidation-completed`, with a note that the wait takes 1–2 minutes
+    - _Requirements: 1.3, 5.3, 5.5, 5.6, 5.10_
+  - [ ] 2.4 Add the verify, browser test, and console tour parts (cells 9–11)
+    - Print `SITE_URL`; `!curl -sI` against the site (expect 200 and the security headers), `http://{DIST_DOMAIN}/` (expect 301), and `https://{BUCKET_DOMAIN}/index.html` (expect 403), with markdown explaining each result
+    - Browser test steps: look up a city, check DevTools > Console for CSP errors; a 403 for `favicon.ico` is expected
+    - `describe-stack-resources --query "StackResources[].[LogicalResourceId,ResourceType,ResourceStatus]" --output table`, then a markdown table of where each resource appears in the console
+    - _Requirements: 2.6, 3.2, 3.5, 4.3, 5.7, 5.8_
+  - [ ] 2.5 Add the cleanup and clear-outputs parts (cells 12–14)
+    - Stack existence check with `subprocess.run(..., shell=True, capture_output=True).returncode`; print "nothing to delete" when the stack is missing
+    - Re-read `BUCKET`; list `Versions[].[Key,VersionId]` and `DeleteMarkers[].[Key,VersionId]` with `--output text`; skip `None`; `delete-object --version-id` for each line, with markdown explaining why a versioned bucket must be emptied first
+    - Warning that deletion takes about 5–15 minutes; `delete-stack`, then `wait stack-delete-complete`, then print the result
+    - Clear-outputs cell copied from `2048-demo.ipynb` with `path = "deploy-aws.ipynb"`, plus the "close without saving" markdown
+    - _Requirements: 6.1, 6.2, 6.3_
+  - [ ] 2.6 Check the notebook
+    - Confirm it opens as valid JSON with every code cell's outputs empty
+    - Confirm no hard-coded profile, region, or account ID, no `json.loads` of CLI output, and no `{...}` in `!` lines other than intended Python variables
+    - _Requirements: 5.2, 5.3, 6.3_
+
+- [ ] 3. Update the README and `.gitignore`
+  - Add a "Deploy to AWS" section covering the architecture and resource list, the `aws sso login --profile <your-profile>` / `AWS_PROFILE` / `aws sts get-caller-identity` / start-Jupyter steps, the CloudFront create and delete times, cost for a low-traffic site, a cleanup reminder, and the clear-outputs step before committing
+  - Add `infra/weather-app.yaml` and `deploy-aws.ipynb` to the Files table
+  - Add `.ipynb_checkpoints/` to `.gitignore`
+  - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
+
+- [ ] 4. Hand off for the user's test run
+  - Tell the user which cells were not run, since the implementer does not deploy unless asked
+  - The user runs the notebook end to end: deploy, verify, a second deploy run with no errors, browser test, cleanup, clear outputs
+  - Before committing, check the staged notebook has empty outputs and search staged files for 12-digit numbers and the user's email
+  - _Requirements: 3.5, 4.3, 5.9, 6.3_
