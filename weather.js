@@ -22,8 +22,21 @@ function getIcon(shortForecast) {
   return '🌡️';
 }
 
+function el(tag, text) {
+  const node = document.createElement(tag);
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function labeledLine(label, value) {
+  const p = el('p');
+  p.appendChild(el('strong', label));
+  p.appendChild(document.createTextNode(` ${value}`));
+  return p;
+}
+
 function showError(msg) {
-  document.getElementById('error-display').innerHTML = msg;
+  document.getElementById('error-display').textContent = msg;
   document.getElementById('weather-display').innerHTML = '';
 }
 
@@ -70,7 +83,12 @@ async function getNWSPoints(lat, lon) {
     if (!data.properties || !data.properties.forecast) {
       throw new Error('Could not retrieve weather grid for that location.');
     }
-    return data.properties.forecast;
+    // Only follow the forecast URL if it stays on the NWS API over HTTPS.
+    const forecastUrl = new URL(data.properties.forecast, 'https://api.weather.gov');
+    if (forecastUrl.protocol !== 'https:' || forecastUrl.hostname !== 'api.weather.gov') {
+      throw new Error('Could not retrieve weather grid for that location.');
+    }
+    return forecastUrl.href;
   } catch (err) {
     if (err.message === 'Could not retrieve weather grid for that location.') {
       throw err;
@@ -110,47 +128,35 @@ function renderWeather(city, periods) {
   const icon = getIcon(current.shortForecast);
   const unit = useCelsius ? '°C' : '°F';
 
+  // All text is set with textContent so user and API data are never parsed as HTML.
   // Current conditions block
-  let html = `
-    <div class="current-conditions">
-      <h2>${icon} ${city}</h2>
-      <p><strong>Temperature:</strong> ${formatTemp(current.temperature)}</p>
-      <p><strong>Conditions:</strong> ${current.shortForecast}</p>
-      <p><strong>Wind:</strong> ${current.windSpeed} ${current.windDirection}</p>
-    </div>
-  `;
+  const box = el('div');
+  box.className = 'current-conditions';
+  box.appendChild(el('h2', `${icon} ${city}`));
+  box.appendChild(labeledLine('Temperature:', formatTemp(current.temperature)));
+  box.appendChild(labeledLine('Conditions:', current.shortForecast));
+  box.appendChild(labeledLine('Wind:', `${current.windSpeed} ${current.windDirection}`));
 
   // Forecast table
-  html += `
-    <table>
-      <thead>
-        <tr>
-          <th>Day</th>
-          <th>Icon</th>
-          <th>High ${unit}</th>
-          <th>Forecast</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  for (const period of periods) {
-    html += `
-        <tr>
-          <td>${period.name}</td>
-          <td>${getIcon(period.shortForecast)}</td>
-          <td>${formatTemp(period.temperature)}</td>
-          <td>${period.shortForecast}</td>
-        </tr>
-    `;
+  const table = el('table');
+  const headRow = el('tr');
+  for (const label of ['Day', 'Icon', `High ${unit}`, 'Forecast']) {
+    headRow.appendChild(el('th', label));
   }
+  table.appendChild(el('thead')).appendChild(headRow);
 
-  html += `
-      </tbody>
-    </table>
-  `;
+  const tbody = el('tbody');
+  for (const period of periods) {
+    const row = el('tr');
+    row.appendChild(el('td', period.name));
+    row.appendChild(el('td', getIcon(period.shortForecast)));
+    row.appendChild(el('td', formatTemp(period.temperature)));
+    row.appendChild(el('td', period.shortForecast));
+    tbody.appendChild(row);
+  }
+  table.appendChild(tbody);
 
-  display.innerHTML = html;
+  display.replaceChildren(box, table);
 
   // Show the toggle button now that we have results
   document.getElementById('unit-toggle').style.display = 'inline-block';
