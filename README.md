@@ -34,7 +34,27 @@ powershell -ExecutionPolicy Bypass -File .\start-server.ps1
 
 Then open <http://localhost:8080>. The script exits with an error if port 8080 is already in use. Stop the server with Ctrl+C.
 
-The server serves only `index.html`, `styles.css`, and `weather.js`. Any other path returns 404.
+The server serves only `index.html`, `styles.css`, and `weather.js`, and forwards `POST /api/summary` to the summary service. Any other path returns 404.
+
+## Forecast summary (local setup)
+
+After the forecast loads, the app streams a short AI-written summary from Amazon Bedrock. A small Node.js service (`summary-server.mjs`) makes the Bedrock call, so AWS credentials never reach the browser.
+
+1. Install Node.js 22 or later.
+2. Install dependencies: `npm install`
+3. In your own terminal, log in to AWS. For example `aws sso login --profile <your-profile>`, then set `AWS_PROFILE` (PowerShell: `$env:AWS_PROFILE = "<your-profile>"`). You can also set AWS credential environment variables instead. The app never logs in or stores credentials.
+4. Set the required environment variables in the same terminal:
+
+   ```powershell
+   $env:BEDROCK_MODEL_ID = "<a Bedrock model or inference profile ID you have access to>"
+   $env:AWS_REGION = "<region where that model is enabled>"
+   ```
+
+   The summary service exits with a message if either one is missing. `SUMMARY_PORT` (default 8081) is optional.
+5. Start the server from that terminal: `./start-server.ps1`
+6. Open <http://localhost:8080>.
+
+The summary service inherits the environment of the terminal that runs `start-server.ps1`. If Bedrock is unavailable, the page shows "Summary unavailable." and the forecast still works.
 
 ## Deploy to AWS
 
@@ -84,7 +104,8 @@ To publish app changes later, re-run Parts 6–8.
 | `index.html` | Page markup |
 | `styles.css` | Page styles |
 | `weather.js` | Geocoding, NWS requests, rendering, unit toggle |
-| `start-server.ps1` | Local HTTP server on `localhost:8080` |
+| `start-server.ps1` | Local HTTP server on `localhost:8080`, starts the summary service |
+| `summary-server.mjs` | Node.js service that streams the Bedrock summary |
 | `infra/weather-app.yaml` | CloudFormation template for the AWS deployment |
 | `deploy-aws.ipynb` | Notebook that deploys, checks, and removes the AWS deployment |
 | `test-bug-condition.js` | Checks that `geocode()` sends the `User-Agent` header |

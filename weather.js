@@ -162,6 +162,85 @@ function renderWeather(city, periods) {
   document.getElementById('unit-toggle').style.display = 'inline-block';
 }
 
+// AI summary state: the controller cancels the active request, the id marks stale responses.
+let summaryController = null;
+let summaryRequestId = 0;
+
+function resetSummary() {
+  summaryRequestId++;
+  if (summaryController) summaryController.abort();
+  summaryController = null;
+  document.getElementById('summary-text').textContent = '';
+  document.getElementById('summary-panel').hidden = true;
+}
+
+async function loadSummary(city, periods) {
+  resetSummary();
+  const myId = summaryRequestId;
+  const controller = new AbortController();
+  summaryController = controller;
+
+  const panel = document.getElementById('summary-panel');
+  const textEl = document.getElementById('summary-text');
+  panel.hidden = false;
+  textEl.textContent = 'Generating summary…';
+
+  const timer = setTimeout(() => controller.abort(), 30000);
+  const isStale = () => myId !== summaryRequestId;
+  let gotText = false;
+
+  try {
+    const body = {
+      city,
+      periods: periods.map(p => ({
+        name: p.name,
+        temperature: p.temperature,
+        shortForecast: p.shortForecast,
+        windSpeed: p.windSpeed,
+        windDirection: p.windDirection
+      }))
+    };
+    const response = await fetch('/api/summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+    if (isStale()) return;
+    if (!response.ok || !response.body) {
+      textEl.textContent = 'Summary unavailable.';
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    while (true) {
+      const { done, value } = await reader.read();
+      if (isStale()) { reader.cancel().catch(() => {}); return; }
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      if (chunk === '') continue;
+      if (!gotText) { textEl.textContent = ''; gotText = true; }
+      textEl.textContent += chunk;
+    }
+    const tail = decoder.decode();
+    if (tail !== '') {
+      if (!gotText) { textEl.textContent = ''; gotText = true; }
+      textEl.textContent += tail;
+    }
+    if (!gotText) textEl.textContent = '';
+  } catch (err) {
+    if (isStale()) return;
+    if (gotText) {
+      textEl.textContent += ' Summary interrupted.';
+    } else {
+      textEl.textContent = 'Summary unavailable.';
+    }
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function getWeather() {
   const city = document.getElementById('city-input').value.trim();
   if (city === '') {
@@ -170,12 +249,14 @@ async function getWeather() {
   }
 
   clearDisplays();
+  resetSummary();
 
   try {
     const { lat, lon } = await geocode(city);
     const forecastUrl = await getNWSPoints(lat, lon);
     const periods = await getForecast(forecastUrl);
     renderWeather(city, periods);
+    loadSummary(city, periods);
   } catch (error) {
     showError(error.message);
   }

@@ -7,7 +7,9 @@
 
 ## Frameworks & Libraries
 
-Not yet determined. Update this file once dependencies are defined.
+Use Strands SDK when possible
+
+For Generative AI calls use AWS Bedrock Converse with Stream API
 
 ## Common Commands
 

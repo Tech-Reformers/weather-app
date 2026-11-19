@@ -1,0 +1,278 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Set up project dependencies": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111592076
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111598176
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111655782
+      }
+    ],
+    "2.1 Create `summary-server.mjs` with request handling and validation": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111592606
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111657877
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112477569
+      }
+    ],
+    "2.2 Add Bedrock streaming and error mapping to `summary-server.mjs`": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111592870
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112480969
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112529200
+      }
+    ],
+    "2.3 Validate the service syntax": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111593026
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112532262
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112546001
+      }
+    ],
+    "3.1 Update the CSP, start the service, and print startup hints": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111593250
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111658353
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112477964
+      }
+    ],
+    "3.2 Add the `/api/summary` proxy to `start-server.ps1`": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111593406
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112481688
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112529485
+      }
+    ],
+    "4.1 Update `index.html` and `styles.css`": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111593551
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111658898
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112478503
+      }
+    ],
+    "5.1 Implement `resetSummary` and `loadSummary`": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111593749
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112482141
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112529939
+      }
+    ],
+    "5.2 Wire the summary into `getWeather`": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111593926
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112532669
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112545597
+      }
+    ],
+    "5.3 Validate the browser script syntax": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111594082
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112548215
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112568859
+      }
+    ],
+    "6. Checkpoint - Local feature complete": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111594282
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112570950
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112581305
+      }
+    ],
+    "7. Document local usage": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111594526
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112581618
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112602284
+      }
+    ],
+    "8.1 Update `infra/weather-app.yaml`": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111594695
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112604462
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112662529
+      }
+    ],
+    "8.2 Update `deploy-aws.ipynb`": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795111594883
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112604817
+      },
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112662728
+      }
+    ],
+    "4. Add the Summary_Panel to the page": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112478696
+      }
+    ],
+    "3. Update `start-server.ps1`": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112529683
+      }
+    ],
+    "2. Implement the Summary_Service": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112546179
+      }
+    ],
+    "5. Stream the summary in `weather.js`": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112569009
+      }
+    ],
+    "8. Update the AWS deployment files (separate, last task)": [
+      {
+        "executionId": "fe281959-d334-4d6c-b5d0-9801ac5abbe6",
+        "chatSessionId": "sess_7b37b788-0990-4469-94a8-9bf5fe22d1f3",
+        "timestamp": 1795112662868
+      }
+    ]
+  }
+}

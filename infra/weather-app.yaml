@@ -1,6 +1,16 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Weather app static site - private S3 bucket served by CloudFront with Origin Access Control and security headers.
 
+Parameters:
+  SummaryOriginDomain:
+    Type: String
+    Description: Domain name (no https:// or path) of the Summary_Service that serves /api/*, for example a Lambda function URL host
+    AllowedPattern: "^[a-zA-Z0-9.-]+$"
+  BedrockModelId:
+    Type: String
+    Description: Bedrock model ID the Summary_Service may invoke
+    AllowedPattern: "^[a-zA-Z0-9.:_-]+$"
+
 Resources:
   # Private bucket that holds index.html, styles.css, and weather.js.
   # CloudFormation generates the bucket name so it is unique.
@@ -45,7 +55,7 @@ Resources:
         Comment: Weather app security headers
         SecurityHeadersConfig:
           ContentSecurityPolicy:
-            ContentSecurityPolicy: "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self' https://nominatim.openstreetmap.org https://api.weather.gov; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+            ContentSecurityPolicy: "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://nominatim.openstreetmap.org https://api.weather.gov; img-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
             Override: true
           StrictTransportSecurity:
             AccessControlMaxAgeSec: 31536000
@@ -76,6 +86,29 @@ Resources:
             S3OriginConfig:
               OriginAccessIdentity: ""
             OriginAccessControlId: !GetAtt SiteOAC.Id
+          - Id: summary-service
+            DomainName: !Ref SummaryOriginDomain
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+        CacheBehaviors:
+          - PathPattern: /api/*
+            TargetOriginId: summary-service
+            ViewerProtocolPolicy: https-only
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+              - PUT
+              - POST
+              - PATCH
+              - DELETE
+            # AWS managed policy "CachingDisabled"
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            # AWS managed policy "AllViewerExceptHostHeader"
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+            ResponseHeadersPolicyId: !Ref SecurityHeadersPolicy
         DefaultCacheBehavior:
           TargetOriginId: site-bucket
           ViewerProtocolPolicy: redirect-to-https
@@ -91,6 +124,33 @@ Resources:
           ResponseHeadersPolicyId: !Ref SecurityHeadersPolicy
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
+      Tags:
+        - Key: Project
+          Value: weather-app
+
+  # Execution role for the Summary_Service. Its only Bedrock permission is streaming invocation of the configured model.
+  SummaryServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Policies:
+        - PolicyName: InvokeSummaryModel
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: bedrock:InvokeModelWithResponseStream
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:bedrock:*::foundation-model/${BedrockModelId}"
+                  - !Sub "arn:${AWS::Partition}:bedrock:*:${AWS::AccountId}:inference-profile/${BedrockModelId}"
       Tags:
         - Key: Project
           Value: weather-app
@@ -136,6 +196,9 @@ Outputs:
   DistributionDomainName:
     Description: CloudFront domain name
     Value: !GetAtt Distribution.DomainName
+  SummaryServiceRoleArn:
+    Description: IAM role for the Summary_Service
+    Value: !GetAtt SummaryServiceRole.Arn
   SiteURL:
     Description: HTTPS address of the app
     Value: !Sub "https://${Distribution.DomainName}"

@@ -1,0 +1,12 @@
+{
+  "name": "weather-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Weather app with AI forecast summary",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@strands-agents/sdk": "^1.25.0"
+  }
+}
