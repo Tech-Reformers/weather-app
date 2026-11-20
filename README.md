@@ -26,35 +26,21 @@ City names are never hardcoded. Whatever the user types is passed to the geocode
 
 ## Running the app
 
-From the project folder, run:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\start-server.ps1
-```
-
-Then open <http://localhost:8080>. The script exits with an error if port 8080 is already in use. Stop the server with Ctrl+C.
-
-The server serves only `index.html`, `styles.css`, and `weather.js`, and forwards `POST /api/summary` to the summary service. Any other path returns 404.
-
-## Forecast summary (local setup)
-
-After the forecast loads, the app streams a short AI-written summary from Amazon Bedrock. A small Node.js service (`summary-server.mjs`) makes the Bedrock call, so AWS credentials never reach the browser.
-
-1. Install Node.js 22 or later.
-2. Install dependencies: `npm install`
-3. In your own terminal, log in to AWS. For example `aws sso login --profile <your-profile>`, then set `AWS_PROFILE` (PowerShell: `$env:AWS_PROFILE = "<your-profile>"`). You can also set AWS credential environment variables instead. The app never logs in or stores credentials.
-4. Set the required environment variables in the same terminal:
+1. Install Node.js 22 or later, then run `npm install` once.
+2. Log in to AWS: `aws sso login --profile jksandbox`
+3. Start the app:
 
    ```powershell
-   $env:BEDROCK_MODEL_ID = "<a Bedrock model or inference profile ID you have access to>"
-   $env:AWS_REGION = "<region where that model is enabled>"
+   .\start-local.ps1
    ```
 
-   The summary service exits with a message if either one is missing. `SUMMARY_PORT` (default 8081) is optional.
-5. Start the server from that terminal: `./start-server.ps1`
-6. Open <http://localhost:8080>.
+4. Open <http://localhost:8080>. Stop the server with Ctrl+C.
 
-The summary service inherits the environment of the terminal that runs `start-server.ps1`. If Bedrock is unavailable, the page shows "Summary unavailable." and the forecast still works.
+If PowerShell blocks the script, run `powershell -ExecutionPolicy Bypass -File .\start-local.ps1` instead.
+
+After the forecast loads, the app streams a short AI-written summary from Amazon Bedrock. If Bedrock is unavailable, the page shows "Summary unavailable." and the forecast still works.
+
+**Advanced:** `start-local.ps1` sets `BEDROCK_MODEL_ID`, `AWS_REGION`, and `AWS_PROFILE`. Edit the values in that file to change the model, Region, or profile. A small Node.js service (`summary-server.mjs`) makes the Bedrock call, so AWS credentials never reach the browser. `SUMMARY_PORT` (default 8081) is optional. The server serves only `index.html`, `styles.css`, and `weather.js`, and forwards `POST /api/summary` to the summary service. Any other path returns 404.
 
 ## Deploy to AWS
 

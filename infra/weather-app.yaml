@@ -1,4 +1,4 @@
-﻿AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: "2010-09-09"
 Description: Weather app - private S3 bucket served by CloudFront, plus a Lambda function (streaming function URL) that writes the AI forecast summary with Bedrock.
 
 Parameters:
@@ -150,11 +150,20 @@ Resources:
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
+              # The model ID itself: a foundation model or a cross-Region inference profile (us., global., ...)
               - Effect: Allow
                 Action: bedrock:InvokeModelWithResponseStream
                 Resource:
                   - !Sub "arn:${AWS::Partition}:bedrock:*::foundation-model/${BedrockModelId}"
                   - !Sub "arn:${AWS::Partition}:bedrock:*:${AWS::AccountId}:inference-profile/${BedrockModelId}"
+              # The foundation model behind the profile, in each Region the profile routes to.
+              # Allowed only when the call goes through this stack's inference profile.
+              - Effect: Allow
+                Action: bedrock:InvokeModelWithResponseStream
+                Resource: !Sub "arn:${AWS::Partition}:bedrock:*::foundation-model/*"
+                Condition:
+                  StringLike:
+                    bedrock:InferenceProfileArn: !Sub "arn:${AWS::Partition}:bedrock:*:${AWS::AccountId}:inference-profile/${BedrockModelId}"
       Tags:
         - Key: Project
           Value: weather-app
