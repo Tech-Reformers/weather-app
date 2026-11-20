@@ -1,4 +1,6 @@
-"**/node_modules/" 
-"**/node_modules/.cache/" 
+﻿**/node_modules/
+**/node_modules/.cache/
 .ipynb_checkpoints/
 node_modules/
+server.log
+build/

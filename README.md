@@ -1,4 +1,4 @@
-# Weather App
+﻿# Weather App
 
 A small browser app that shows a 5-day forecast for a U.S. city. It uses plain HTML and JavaScript, with no build step, dependencies, or framework.
 
@@ -7,7 +7,7 @@ A small browser app that shows a 5-day forecast for a U.S. city. It uses plain H
 - Enter a U.S. city name and press **Get Weather** or the Enter key.
 - Current conditions: temperature, short forecast, and wind.
 - 5-day forecast table (daytime periods only) with emoji icons.
-- Toggle between °F and °C without refetching data.
+- Toggle between Â°F and Â°C without refetching data.
 - Error messages for empty input, unknown cities, network failures, and 10-second timeouts.
 
 ## How it works
@@ -58,7 +58,7 @@ The summary service inherits the environment of the terminal that runs `start-se
 
 ## Deploy to AWS
 
-The app is deployed as a static site. A private S3 bucket holds `index.html`, `styles.css`, and `weather.js`, and CloudFront serves them over HTTPS. Only CloudFront can read the bucket, through Origin Access Control (OAC). CloudFront also adds browser security headers, including a Content-Security-Policy that allows the page to call only Nominatim and the NWS API. The browser still calls those services directly; there is no server.
+The app is deployed as a static site. A private S3 bucket holds `index.html`, `styles.css`, and `weather.js`, and CloudFront serves them over HTTPS. Only CloudFront can read the bucket, through Origin Access Control (OAC). CloudFront also adds browser security headers, including a Content-Security-Policy that allows the page to call only Nominatim and the NWS API. The browser still calls those services directly. The AI summary comes from a Lambda function (`summary-lambda.mjs`) with a streaming function URL. CloudFront sends `/api/*` to it. The function's IAM role can call one Bedrock model only (the `BedrockModelId` stack parameter).
 
 One CloudFormation template, `infra/weather-app.yaml`, creates:
 
@@ -88,10 +88,10 @@ Start Jupyter from this repo's top folder, in the same terminal, so the notebook
 
 Open `deploy-aws.ipynb` and run the cells in order.
 
-- **Deploy (Parts 1–11):** creates the stack, uploads the three files, clears the CloudFront cache, checks the site, and lists where each resource appears in the console. Creating the CloudFront distribution takes about 5 minutes.
-- **Clean up (Parts 12–13):** empties the bucket and deletes the stack. Deleting the distribution takes about 5–15 minutes. These cells work on their own, even after restarting Jupyter.
+- **Deploy (Parts 1â€“11):** creates the stack, uploads the three files, clears the CloudFront cache, checks the site, and lists where each resource appears in the console. Creating the CloudFront distribution takes about 5 minutes.
+- **Clean up (Parts 12â€“13):** empties the bucket and deletes the stack. Deleting the distribution takes about 5â€“15 minutes. These cells work on their own, even after restarting Jupyter.
 
-To publish app changes later, re-run Parts 6–8.
+To publish app changes later, re-run Parts 6â€“8.
 
 **Cost:** for a low-traffic site this normally stays within the CloudFront and S3 free tiers or costs a few cents a month. Run the cleanup cells when you are finished.
 
@@ -105,7 +105,9 @@ To publish app changes later, re-run Parts 6–8.
 | `styles.css` | Page styles |
 | `weather.js` | Geocoding, NWS requests, rendering, unit toggle |
 | `start-server.ps1` | Local HTTP server on `localhost:8080`, starts the summary service |
-| `summary-server.mjs` | Node.js service that streams the Bedrock summary |
+| `summary-server.mjs` | Local Node.js service that streams the Bedrock summary |
+| `summary-lambda.mjs` | Lambda handler that streams the Bedrock summary on AWS |
+| `summary-core.mjs` | Validation and Bedrock streaming shared by the local service and the Lambda handler |
 | `infra/weather-app.yaml` | CloudFormation template for the AWS deployment |
 | `deploy-aws.ipynb` | Notebook that deploys, checks, and removes the AWS deployment |
 | `test-bug-condition.js` | Checks that `geocode()` sends the `User-Agent` header |

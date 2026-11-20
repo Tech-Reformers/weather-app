@@ -1,11 +1,15 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Description: Weather app static site - private S3 bucket served by CloudFront with Origin Access Control and security headers.
+﻿AWSTemplateFormatVersion: "2010-09-09"
+Description: Weather app - private S3 bucket served by CloudFront, plus a Lambda function (streaming function URL) that writes the AI forecast summary with Bedrock.
 
 Parameters:
-  SummaryOriginDomain:
+  SummaryCodeBucket:
     Type: String
-    Description: Domain name (no https:// or path) of the Summary_Service that serves /api/*, for example a Lambda function URL host
-    AllowedPattern: "^[a-zA-Z0-9.-]+$"
+    Description: S3 bucket that holds the Summary_Service zip
+    AllowedPattern: "^[a-z0-9.-]{3,63}$"
+  SummaryCodeKey:
+    Type: String
+    Description: S3 key of the Summary_Service zip
+    AllowedPattern: "^[a-zA-Z0-9._/-]+$"
   BedrockModelId:
     Type: String
     Description: Bedrock model ID the Summary_Service may invoke
@@ -87,7 +91,7 @@ Resources:
               OriginAccessIdentity: ""
             OriginAccessControlId: !GetAtt SiteOAC.Id
           - Id: summary-service
-            DomainName: !Ref SummaryOriginDomain
+            DomainName: !Select [2, !Split ["/", !GetAtt SummaryFunctionUrl.FunctionUrl]]
             CustomOriginConfig:
               OriginProtocolPolicy: https-only
               OriginSSLProtocols:
@@ -155,6 +159,49 @@ Resources:
         - Key: Project
           Value: weather-app
 
+  SummaryFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: nodejs22.x
+      Handler: summary-lambda.handler
+      Role: !GetAtt SummaryServiceRole.Arn
+      Timeout: 60
+      MemorySize: 512
+      Code:
+        S3Bucket: !Ref SummaryCodeBucket
+        S3Key: !Ref SummaryCodeKey
+      Environment:
+        Variables:
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+      Tags:
+        - Key: Project
+          Value: weather-app
+
+  # Public function URL with response streaming. CloudFront sends /api/* here.
+  # The function accepts only POST /api/summary with a small validated body.
+  SummaryFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn: !GetAtt SummaryFunction.Arn
+      AuthType: NONE
+      InvokeMode: RESPONSE_STREAM
+
+  SummaryUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref SummaryFunction
+      Action: lambda:InvokeFunctionUrl
+      Principal: "*"
+      FunctionUrlAuthType: NONE
+
+  SummaryInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref SummaryFunction
+      Action: lambda:InvokeFunction
+      Principal: "*"
+      InvokedViaFunctionUrl: true
+
   # Only this distribution may read objects, and only over HTTPS.
   SiteBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -196,6 +243,9 @@ Outputs:
   DistributionDomainName:
     Description: CloudFront domain name
     Value: !GetAtt Distribution.DomainName
+  SummaryFunctionName:
+    Description: Lambda function that writes the forecast summary
+    Value: !Ref SummaryFunction
   SummaryServiceRoleArn:
     Description: IAM role for the Summary_Service
     Value: !GetAtt SummaryServiceRole.Arn
